@@ -33,7 +33,11 @@ public enum StreamEvent: Sendable {
     }
     
     public struct MessageStop: Codable, Sendable {
-        public let usage: MessagesResponse.Usage
+        public let usage: MessagesResponse.Usage?
+        
+        public init(usage: MessagesResponse.Usage?) {
+            self.usage = usage
+        }
     }
     
     public struct MessageDelta: Codable, Sendable {
@@ -121,12 +125,19 @@ public struct StreamingResponseParser {
                 return .error("Failed to parse message_start")
                 
             case "message_stop":
-                if let usage = json?["usage"] as? [String: Any],
-                   let usageData = try? JSONSerialization.data(withJSONObject: usage, options: []),
-                   let usageObject = try? JSONDecoder().decode(MessagesResponse.Usage.self, from: usageData) {
+                // message_stop might come with or without usage
+                if let eventData = try? JSONSerialization.data(withJSONObject: json!, options: []),
+                   let messageStop = try? JSONDecoder().decode(StreamEvent.MessageStop.self, from: eventData) {
+                    return .messageStop(messageStop)
+                } else if let message = json?["message"] as? [String: Any],
+                          let usage = message["usage"] as? [String: Any],
+                          let usageData = try? JSONSerialization.data(withJSONObject: usage, options: []),
+                          let usageObject = try? JSONDecoder().decode(MessagesResponse.Usage.self, from: usageData) {
                     return .messageStop(StreamEvent.MessageStop(usage: usageObject))
+                } else {
+                    // Return empty message_stop if no usage data
+                    return .messageStop(StreamEvent.MessageStop(usage: nil))
                 }
-                return .error("Failed to parse message_stop")
                 
             case "message_delta":
                 if let eventData = try? JSONSerialization.data(withJSONObject: json!, options: []),
@@ -181,7 +192,9 @@ public struct StreamingResponseParser {
                 messageStart = start
                 
             case .messageStop(let stop):
-                finalUsage = stop.usage
+                if let usage = stop.usage {
+                    finalUsage = usage
+                }
                 
             case .messageDelta(let delta):
                 // Handle message delta - typically contains stop reason updates

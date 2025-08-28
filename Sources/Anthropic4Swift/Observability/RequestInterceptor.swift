@@ -77,7 +77,11 @@ public struct DebugInterceptor: RequestInterceptor {
         case .messageStart:
             logger.debug("🌊 Stream started")
         case .messageStop(let stop):
-            logger.debug("🏁 Stream finished - Total tokens: \(stop.usage.totalTokens)")
+            if let usage = stop.usage {
+                logger.debug("🏁 Stream finished - Total tokens: \(usage.totalTokens)")
+            } else {
+                logger.debug("🏁 Stream finished")
+            }
         case .contentBlockDelta(let delta):
             if let text = delta.delta.text {
                 logger.debug("📝 Delta: \(text.prefix(50))\(text.count > 50 ? "..." : "")")

@@ -264,46 +264,69 @@ struct Examples {
         
         // Note: Create a .env file with ANTHROPIC_API_KEY=your-actual-key to run these examples
         
+        // 1. Simple Client Usage
+        print("\n1. Simple Client Usage:")
+        print("-----------------------")
         do {
-            // 1. Simple Client Usage
-            print("\n1. Simple Client Usage:")
-            print("-----------------------")
             try await simpleClientExample()
-            
-            // 2. Agent Usage
-            print("\n2. Agent Usage:")
-            print("---------------")
-            try await agentExample()
-            
-            // 3. Tool Usage
-            print("\n3. Tool Usage:")
-            print("--------------")
-            try await toolExample()
-            
-            // 4. Message Builder
-            print("\n4. Message Builder Usage:")
-            print("-------------------------")
-            try await messageBuilderExample()
-            
-            // 5. Streaming
-            if #available(macOS 10.15, *) {
-                print("\n5. Streaming Usage:")
-                print("-------------------")
-                try await streamingExample()
-            }
-            
-            // 6. Observability
-            print("\n6. Observability Usage:")
-            print("-----------------------")
-            try await observabilityExample()
-            
-            // 7. Image Testing with TestData
-            print("\n7. Image Testing:")
-            print("-----------------")
-            try await imageTestingExample()
-            
         } catch {
-            print("Example failed with error: \(error)")
+            print("\u{001B}[31m❌ Example 1 failed: \(error)\u{001B}[0m")
+        }
+        
+        // 2. Agent Usage
+        print("\n2. Agent Usage:")
+        print("---------------")
+        do {
+            try await agentExample()
+        } catch {
+            print("\u{001B}[31m❌ Example 2 failed: \(error)\u{001B}[0m")
+        }
+        
+        // 3. Tool Usage
+        print("\n3. Tool Usage:")
+        print("--------------")
+        do {
+            try await toolExample()
+        } catch {
+            print("\u{001B}[31m❌ Example 3 failed: \(error)\u{001B}[0m")
+        }
+        
+        // 4. Message Builder
+        print("\n4. Message Builder Usage:")
+        print("-------------------------")
+        do {
+            try await messageBuilderExample()
+        } catch {
+            print("\u{001B}[31m❌ Example 4 failed: \(error)\u{001B}[0m")
+        }
+        
+        // 5. Streaming
+        if #available(macOS 10.15, *) {
+            print("\n5. Streaming Usage:")
+            print("-------------------")
+            do {
+                try await streamingExample()
+            } catch {
+                print("\u{001B}[31m❌ Example 5 (Streaming) failed: \(error)\u{001B}[0m")
+            }
+        }
+        
+        // 6. Observability
+        print("\n6. Observability Usage:")
+        print("-----------------------")
+        do {
+            try await observabilityExample()
+        } catch {
+            print("\u{001B}[31m❌ Example 6 failed: \(error)\u{001B}[0m")
+        }
+        
+        // 7. Image Testing with TestData
+        print("\n7. Image Testing:")
+        print("-----------------")
+        do {
+            try await imageTestingExample()
+        } catch {
+            print("\u{001B}[31m❌ Example 7 failed: \(error)\u{001B}[0m")
         }
         
         // 8. Error Handling (doesn't throw)
