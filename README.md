@@ -67,6 +67,9 @@ Create a `.env` file in your project root:
 ```bash
 # .env
 ANTHROPIC_API_KEY=your-actual-api-key-here
+
+# Optional: Custom endpoint URL
+# ANTHROPIC_BASE_URL=https://api.custom-claude.com
 ```
 
 Then use the convenience methods:
@@ -75,8 +78,50 @@ Then use the convenience methods:
 // Load client from environment
 let client = try AnthropicClient.fromEnvironment()
 
-// Load agent from environment
+// Load agent from environment  
 let agent = try Agent.fromEnvironment(systemPrompt: "You are helpful.")
+```
+
+### Custom Endpoints
+
+Anthropic4Swift supports custom endpoints for AWS Bedrock, Google Cloud Vertex AI, Azure, and other hosting providers:
+
+```swift
+// AWS Bedrock
+let bedrockConfig = APIConfiguration.bedrock(
+    apiKey: "your-aws-key", 
+    region: "us-west-2"
+)
+let bedrockClient = AnthropicClient(apiKey: "your-aws-key", configuration: bedrockConfig)
+
+// Google Cloud Vertex AI
+let vertexConfig = APIConfiguration.vertexAI(
+    apiKey: "your-gcp-key",
+    projectId: "my-project-id", 
+    region: "us-central1"
+)
+let vertexClient = AnthropicClient(apiKey: "your-gcp-key", configuration: vertexConfig)
+
+// Azure OpenAI
+let azureConfig = APIConfiguration.azure(
+    apiKey: "your-azure-key",
+    endpoint: "https://my-resource.openai.azure.com"
+)
+let azureClient = AnthropicClient(apiKey: "your-azure-key", configuration: azureConfig)
+
+// Custom endpoint
+let customConfig = APIConfiguration.custom(
+    apiKey: "your-api-key",
+    baseURL: "https://api.custom-claude.com"
+)
+let customClient = AnthropicClient(apiKey: "your-api-key", configuration: customConfig)
+
+// Agent with custom URL
+let agent = Agent(
+    apiKey: "your-api-key",
+    baseURL: URL(string: "https://api.custom-claude.com")!,
+    systemPrompt: "You are helpful."
+)
 ```
 
 ### Agent Usage
@@ -242,15 +287,24 @@ All current Claude models are supported:
 
 ### AnthropicClient
 
-- `init(apiKey: String)`
+- `init(apiKey: String, configuration: APIConfiguration?, interceptors: [RequestInterceptor])`
+- `fromEnvironment(path: String, interceptors: [RequestInterceptor]) throws -> AnthropicClient`
 - `complete(_ prompt: String) async throws -> String`
 - `send(_ request: MessagesRequest) async throws -> MessagesResponse`
 - `stream(_ request: MessagesRequest) -> AsyncThrowingStream<StreamEvent, Error>`
 
+### APIConfiguration
+
+- `init(apiKey: String, baseURL: URL, version: String, timeout: TimeInterval)`
+- `bedrock(apiKey: String, region: String) -> APIConfiguration`
+- `vertexAI(apiKey: String, projectId: String, region: String) -> APIConfiguration`  
+- `azure(apiKey: String, endpoint: String) -> APIConfiguration`
+- `custom(apiKey: String, baseURL: String) -> APIConfiguration`
+
 ### Agent
 
-- `Agent.conversation(apiKey: String, systemPrompt: String?) -> Agent`
-- `Agent.withTools(apiKey: String, functions: [ToolFunction]) -> Agent`
+- `init(apiKey: String, baseURL: URL?, systemPrompt: String?, tools: [Tool], toolExecutor: ToolExecutor?, model: String, maxTokens: Int, temperature: Double?)`
+- `fromEnvironment(path: String, systemPrompt: String?, tools: [Tool], toolExecutor: ToolExecutor?, model: String) throws -> Agent`
 - `send(_ message: String) async throws -> String`
 - `clearConversation()`
 
@@ -309,7 +363,8 @@ The examples include:
 5. **Streaming Usage** - Real-time response streaming
 6. **Observability** - Debugging and metrics collection
 7. **Image Testing** - Multimodal analysis of test images (includes TV test pattern, mobile app screenshots, icons)
-8. **Error Handling** - Proper error management
+8. **Custom URLs/Endpoints** - AWS Bedrock, Google Vertex AI, Azure, and custom endpoints
+9. **Error Handling** - Proper error management
 
 The `TestData/` directory contains sample images for testing multimodal functionality.
 
@@ -332,5 +387,6 @@ The `TestData/` directory contains sample images for testing multimodal function
 - Observability layer with metrics and debugging
 - Result builders for clean message construction DSL
 - .env file support for secure API key management
+- Custom endpoint support for AWS Bedrock, Google Vertex AI, Azure, and custom URLs
 - Comprehensive executable examples with color-coded output
 - TestData directory with sample images for multimodal testing

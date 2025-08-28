@@ -34,4 +34,30 @@ public struct APIConfiguration: Sendable {
             "connection": "keep-alive"
         ]
     }
+    
+    // MARK: - Convenience Methods for Common Endpoints
+    
+    /// Configuration for AWS Bedrock
+    public static func bedrock(apiKey: String, region: String = "us-east-1") -> APIConfiguration {
+        let baseURL = URL(string: "https://bedrock-runtime.\(region).amazonaws.com")!
+        return APIConfiguration(apiKey: apiKey, baseURL: baseURL)
+    }
+    
+    /// Configuration for Google Cloud Vertex AI
+    public static func vertexAI(apiKey: String, projectId: String, region: String = "us-central1") -> APIConfiguration {
+        let baseURL = URL(string: "https://\(region)-aiplatform.googleapis.com/v1/projects/\(projectId)/locations/\(region)")!
+        return APIConfiguration(apiKey: apiKey, baseURL: baseURL)
+    }
+    
+    /// Configuration for Azure OpenAI
+    public static func azure(apiKey: String, endpoint: String) -> APIConfiguration {
+        let baseURL = URL(string: endpoint)!
+        return APIConfiguration(apiKey: apiKey, baseURL: baseURL)
+    }
+    
+    /// Configuration for custom endpoint
+    public static func custom(apiKey: String, baseURL: String) -> APIConfiguration {
+        let url = URL(string: baseURL)!
+        return APIConfiguration(apiKey: apiKey, baseURL: url)
+    }
 }

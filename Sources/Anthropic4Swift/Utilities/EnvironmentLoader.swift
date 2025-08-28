@@ -120,9 +120,10 @@ extension Agent {
         toolExecutor: ToolExecutor? = nil,
         model: String = MessagesRequest.defaultModel
     ) throws -> Agent {
-        let apiKey = try EnvironmentLoader.loadAPIKey(from: path)
+        let config = try EnvironmentLoader.configure(from: path)
         return Agent(
-            apiKey: apiKey,
+            apiKey: config.apiKey,
+            baseURL: config.baseURL,
             systemPrompt: systemPrompt,
             tools: tools,
             toolExecutor: toolExecutor,

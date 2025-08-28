@@ -13,6 +13,7 @@ public actor Agent {
     
     public init(
         apiKey: String,
+        baseURL: URL? = nil,
         systemPrompt: String? = nil,
         tools: [Tool] = [],
         toolExecutor: ToolExecutor? = nil,
@@ -26,7 +27,14 @@ public actor Agent {
         self.model = model
         self.maxTokens = maxTokens
         self.temperature = temperature
-        self.client = AnthropicClient(apiKey: apiKey)
+        
+        if let baseURL = baseURL {
+            let config = APIConfiguration(apiKey: apiKey, baseURL: baseURL)
+            self.client = AnthropicClient(apiKey: apiKey, configuration: config)
+        } else {
+            self.client = AnthropicClient(apiKey: apiKey)
+        }
+        
         self.conversation = Conversation()
     }
     

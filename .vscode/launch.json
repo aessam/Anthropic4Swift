@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Anthropic4Swift}",
+            "name": "Debug Examples",
+            "program": "${workspaceFolder:Anthropic4Swift}/.build/debug/Examples",
+            "preLaunchTask": "swift: Build Debug Examples"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Anthropic4Swift}",
+            "name": "Release Examples",
+            "program": "${workspaceFolder:Anthropic4Swift}/.build/release/Examples",
+            "preLaunchTask": "swift: Build Release Examples"
+        }
+    ]
+}

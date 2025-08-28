@@ -218,6 +218,63 @@ func loadImageAsCGImage(_ path: String) -> CGImage {
     return cgImage
 }
 
+// MARK: - Custom URL/Endpoint Example
+
+func customURLExample() async throws {
+    print("\u{001B}[95m🌐 Testing Custom URLs/Endpoints:\u{001B}[0m")
+    print("===================================")
+    
+    // Example 1: Direct URL configuration
+    print("\n1. Using direct URL configuration:")
+    let customConfig = APIConfiguration.custom(
+        apiKey: "test-key", 
+        baseURL: "https://api.custom-claude.com"
+    )
+    let _ = AnthropicClient(apiKey: "test-key", configuration: customConfig)
+    print("\u{001B}[34m🔗 Custom endpoint: \(customConfig.baseURL.absoluteString)\u{001B}[0m")
+    
+    // Example 2: AWS Bedrock configuration
+    print("\n2. AWS Bedrock configuration:")
+    let bedrockConfig = APIConfiguration.bedrock(apiKey: "aws-key", region: "us-west-2")
+    let _ = AnthropicClient(apiKey: "aws-key", configuration: bedrockConfig)
+    print("\u{001B}[34m🔗 Bedrock endpoint: \(bedrockConfig.baseURL.absoluteString)\u{001B}[0m")
+    
+    // Example 3: Google Cloud Vertex AI configuration  
+    print("\n3. Google Cloud Vertex AI configuration:")
+    let vertexConfig = APIConfiguration.vertexAI(
+        apiKey: "gcp-key",
+        projectId: "my-project",
+        region: "us-central1"
+    )
+    let _ = AnthropicClient(apiKey: "gcp-key", configuration: vertexConfig)
+    print("\u{001B}[34m🔗 Vertex AI endpoint: \(vertexConfig.baseURL.absoluteString)\u{001B}[0m")
+    
+    // Example 4: Azure configuration
+    print("\n4. Azure OpenAI configuration:")
+    let azureConfig = APIConfiguration.azure(
+        apiKey: "azure-key",
+        endpoint: "https://my-resource.openai.azure.com"
+    )
+    let _ = AnthropicClient(apiKey: "azure-key", configuration: azureConfig)
+    print("\u{001B}[34m🔗 Azure endpoint: \(azureConfig.baseURL.absoluteString)\u{001B}[0m")
+    
+    // Example 5: Agent with custom URL
+    print("\n5. Agent with custom URL:")
+    let _ = Agent(
+        apiKey: "test-key",
+        baseURL: URL(string: "https://api.custom-claude.com")!,
+        systemPrompt: "You are a helpful assistant on a custom endpoint."
+    )
+    print("\u{001B}[34m🔗 Agent configured with custom endpoint\u{001B}[0m")
+    
+    // Example 6: From .env file with custom URL
+    print("\n6. Environment configuration with custom URL:")
+    print("\u{001B}[33m💡 In your .env file, add:\u{001B}[0m")
+    print("\u{001B}[90m   ANTHROPIC_API_KEY=your-api-key\u{001B}[0m")
+    print("\u{001B}[90m   ANTHROPIC_BASE_URL=https://api.custom-claude.com\u{001B}[0m")
+    print("\u{001B}[34m🔗 Then use: AnthropicClient.fromEnvironment() or Agent.fromEnvironment()\u{001B}[0m")
+}
+
 // MARK: - Error Handling Example
 
 func errorHandlingExample() async {
@@ -329,8 +386,17 @@ struct Examples {
             print("\u{001B}[31m❌ Example 7 failed: \(error)\u{001B}[0m")
         }
         
-        // 8. Error Handling (doesn't throw)
-        print("\n8. Error Handling Example:")
+        // 8. Custom URLs/Endpoints
+        print("\n8. Custom URLs/Endpoints:")
+        print("--------------------------")
+        do {
+            try await customURLExample()
+        } catch {
+            print("\u{001B}[31m❌ Example 8 failed: \(error)\u{001B}[0m")
+        }
+        
+        // 9. Error Handling (doesn't throw)
+        print("\n9. Error Handling Example:")
         print("--------------------------")
         await errorHandlingExample()
         
