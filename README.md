@@ -28,7 +28,7 @@ Add this to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/yourusername/Anthropic4Swift", from: "1.0.0")
+    .package(url: "https://github.com/aessam/Anthropic4Swift", from: "1.0.0")
 ]
 ```
 
@@ -110,9 +110,10 @@ let calculatorTool = SimpleToolFunction(
     return "Result: 42"
 }
 
-let agent = Agent.withTools(
-    apiKey: "your-api-key",
-    functions: [calculatorTool]
+let agent = try Agent.fromEnvironment(
+    systemPrompt: "You are a helpful math assistant.",
+    tools: [calculatorTool.tool],
+    toolExecutor: FunctionToolExecutor(functions: [calculatorTool])
 )
 
 let response = try await agent.send("What is 2 + 2?")
@@ -123,9 +124,9 @@ let response = try await agent.send("What is 2 + 2?")
 
 ```swift
 let userMessage = UserMessage {
-    Text("What's in this image?")
+    "What's in this image?"
     Image(cgImage) // Your CGImage
-    Text("Please describe it in detail.")
+    "Please describe it in detail."
 }
 
 let response = try await client.send(messages: [userMessage.message])
@@ -281,8 +282,8 @@ MIT License - see LICENSE file for details.
 ## Support
 
 - Documentation: [Link to docs]
-- Issues: [GitHub Issues](https://github.com/yourusername/Anthropic4Swift/issues)
-- Discussions: [GitHub Discussions](https://github.com/yourusername/Anthropic4Swift/discussions)
+- Issues: [GitHub Issues](https://github.com/aessam/Anthropic4Swift/issues)
+- Discussions: [GitHub Discussions](https://github.com/aessam/Anthropic4Swift/discussions)
 
 ## Running Examples
 
@@ -290,26 +291,46 @@ The package includes an executable target with examples:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/Anthropic4Swift
+git clone https://github.com/aessam/Anthropic4Swift
 cd Anthropic4Swift
 
-# 2. Create .env file from example
-cp .env.example .env
-# Edit .env and add your API key
+# 2. Create .env file with your API key
+echo "ANTHROPIC_API_KEY=your-actual-api-key-here" > .env
 
-# 3. Run examples
+# 3. Run examples (shows colored output to distinguish prompts from responses)
 swift run Examples
 ```
+
+The examples include:
+1. **Simple Client Usage** - Basic completions and system prompts
+2. **Agent Usage** - Conversational agents with memory
+3. **Tool Usage** - Custom tools with automatic execution
+4. **Message Builder** - Result builder pattern for complex messages
+5. **Streaming Usage** - Real-time response streaming
+6. **Observability** - Debugging and metrics collection
+7. **Image Testing** - Multimodal analysis of test images (includes TV test pattern, mobile app screenshots, icons)
+8. **Error Handling** - Proper error management
+
+The `TestData/` directory contains sample images for testing multimodal functionality.
+
+### Color Legend
+- 🔵 **Cyan** = User Prompts
+- 🟡 **Yellow** = System Prompts  
+- 🟢 **Green** = AI Responses
+- 🟣 **Magenta** = Tool Calls
+- 🔵 **Blue** = Metrics/Info
+- 🔴 **Red** = Errors
 
 ## Changelog
 
 ### 1.0.0
 - Initial release
-- Core API client with persistent connections
-- Agent abstraction with tool loop  
-- Multimodal support (text + images)
-- Streaming responses
-- Observability layer
-- Result builders for message construction
-- .env file support
-- Executable examples target
+- Core API client with persistent HTTP connections
+- Agent abstraction with automatic tool loop handling
+- Multimodal support (text + images) using CoreGraphics
+- Streaming responses with proper SSE parsing
+- Observability layer with metrics and debugging
+- Result builders for clean message construction DSL
+- .env file support for secure API key management
+- Comprehensive executable examples with color-coded output
+- TestData directory with sample images for multimodal testing
