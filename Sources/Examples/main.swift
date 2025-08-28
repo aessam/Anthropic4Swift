@@ -96,14 +96,12 @@ func streamingExample() async throws {
 // MARK: - Observability Usage
 
 func observabilityExample() async throws {
-    let client = try AnthropicClient.fromEnvironment()
+    // Create interceptors
+    let debugInterceptor = DebugInterceptor()
+    let metricsInterceptor = MetricsInterceptor()
     
-    // You can add interceptors for debugging and metrics
-    let _ = DebugInterceptor()
-    let _ = MetricsInterceptor()
-    
-    // In a real implementation, you'd add these to the client
-    // This is just showing the API structure
+    // Create client with interceptors
+    let client = try AnthropicClient.fromEnvironment(interceptors: [debugInterceptor, metricsInterceptor])
     
     let response = try await client.complete("Hello, Claude!")
     print("Response with observability: \(response)")

@@ -3,6 +3,7 @@ import Foundation
 public enum StreamEvent: Sendable {
     case messageStart(MessageStart)
     case messageStop(MessageStop)
+    case messageDelta(MessageDelta)
     case contentBlockStart(ContentBlockStart)
     case contentBlockStop(ContentBlockStop)
     case contentBlockDelta(ContentBlockDelta)
@@ -33,6 +34,21 @@ public enum StreamEvent: Sendable {
     
     public struct MessageStop: Codable, Sendable {
         public let usage: MessagesResponse.Usage
+    }
+    
+    public struct MessageDelta: Codable, Sendable {
+        public let delta: Delta
+        public let usage: MessagesResponse.Usage?
+        
+        public struct Delta: Codable, Sendable {
+            public let stopReason: String?
+            public let stopSequence: String?
+            
+            enum CodingKeys: String, CodingKey {
+                case stopReason = "stop_reason"
+                case stopSequence = "stop_sequence"
+            }
+        }
     }
     
     public struct ContentBlockStart: Codable, Sendable {
@@ -112,6 +128,13 @@ public struct StreamingResponseParser {
                 }
                 return .error("Failed to parse message_stop")
                 
+            case "message_delta":
+                if let eventData = try? JSONSerialization.data(withJSONObject: json!, options: []),
+                   let messageDelta = try? JSONDecoder().decode(StreamEvent.MessageDelta.self, from: eventData) {
+                    return .messageDelta(messageDelta)
+                }
+                return .error("Failed to parse message_delta")
+                
             case "content_block_start":
                 if let eventData = try? JSONSerialization.data(withJSONObject: json!, options: []),
                    let contentBlockStart = try? JSONDecoder().decode(StreamEvent.ContentBlockStart.self, from: eventData) {
@@ -159,6 +182,12 @@ public struct StreamingResponseParser {
                 
             case .messageStop(let stop):
                 finalUsage = stop.usage
+                
+            case .messageDelta(let delta):
+                // Handle message delta - typically contains stop reason updates
+                if let usage = delta.usage {
+                    finalUsage = usage
+                }
                 
             case .contentBlockStart(let start):
                 if currentIndex < start.index {

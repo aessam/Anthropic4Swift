@@ -105,9 +105,9 @@ public enum EnvironmentError: Error, LocalizedError {
 
 extension AnthropicClient {
     /// Create client from .env file
-    public static func fromEnvironment(_ path: String = ".env") throws -> AnthropicClient {
+    public static func fromEnvironment(_ path: String = ".env", interceptors: [RequestInterceptor] = []) throws -> AnthropicClient {
         let config = try EnvironmentLoader.configure(from: path)
-        return AnthropicClient(apiKey: config.apiKey, configuration: config)
+        return AnthropicClient(apiKey: config.apiKey, configuration: config, interceptors: interceptors)
     }
 }
 

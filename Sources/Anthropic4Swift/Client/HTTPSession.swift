@@ -59,32 +59,28 @@ final class HTTPSession: NSObject, @unchecked Sendable {
     
     func stream(request: URLRequest) -> AsyncThrowingStream<StreamEvent, Error> {
         return AsyncThrowingStream { continuation in
-            let task = session.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    continuation.finish(throwing: AnthropicError.networkError(error))
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    continuation.finish(throwing: AnthropicError.invalidResponse("Expected HTTPURLResponse"))
-                    return
-                }
-                
-                guard httpResponse.statusCode == 200 else {
-                    let errorMessage = data.flatMap { String(data: $0, encoding: .utf8) }
-                    continuation.finish(throwing: AnthropicError.httpError(httpResponse.statusCode, errorMessage))
-                    return
-                }
-                
-                continuation.finish()
-            }
-            
             let delegate = StreamingDelegate(continuation: continuation)
-            task.delegate = delegate
+            
+            // Create a custom URLSession with our delegate
+            let sessionConfig = URLSessionConfiguration.default
+            sessionConfig.timeoutIntervalForRequest = configuration.timeout
+            sessionConfig.timeoutIntervalForResource = configuration.timeout
+            sessionConfig.httpAdditionalHeaders = [
+                "Connection": "keep-alive",
+                "Keep-Alive": "timeout=120, max=1000"
+            ]
+            
+            let streamSession = URLSession(configuration: sessionConfig, delegate: delegate, delegateQueue: nil)
+            let task = streamSession.dataTask(with: request)
+            
+            // Store the session in the delegate to prevent deallocation
+            delegate.session = streamSession
+            
             task.resume()
             
             continuation.onTermination = { _ in
                 task.cancel()
+                streamSession.invalidateAndCancel()
             }
         }
     }
@@ -93,6 +89,7 @@ final class HTTPSession: NSObject, @unchecked Sendable {
 private final class StreamingDelegate: NSObject, URLSessionDataDelegate, @unchecked Sendable {
     private let continuation: AsyncThrowingStream<StreamEvent, Error>.Continuation
     private var buffer = Data()
+    var session: URLSession?
     
     init(continuation: AsyncThrowingStream<StreamEvent, Error>.Continuation) {
         self.continuation = continuation
@@ -112,6 +109,22 @@ private final class StreamingDelegate: NSObject, URLSessionDataDelegate, @unchec
                 }
             }
         }
+    }
+    
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        guard let httpResponse = response as? HTTPURLResponse else {
+            continuation.finish(throwing: AnthropicError.invalidResponse("Expected HTTPURLResponse"))
+            completionHandler(.cancel)
+            return
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            continuation.finish(throwing: AnthropicError.httpError(httpResponse.statusCode, "HTTP \(httpResponse.statusCode)"))
+            completionHandler(.cancel)
+            return
+        }
+        
+        completionHandler(.allow)
     }
     
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didCompleteWithError error: Error?) {

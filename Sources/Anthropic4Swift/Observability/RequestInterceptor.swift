@@ -90,7 +90,6 @@ public struct DebugInterceptor: RequestInterceptor {
     }
 }
 
-@available(macOS 10.15, *)
 public struct MetricsInterceptor: RequestInterceptor {
     private let metricsCollector: MetricsCollector
     
